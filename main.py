@@ -5,9 +5,23 @@ bot = telebot.TeleBot('тут будет апи ключ')
 
 
 def sql_new_user(tg_id, tg_username):
-    # TODO(@Сергей) сделать запись в БД
+    '''
+    Функция реализует создание записи в базе данных о пользователе
+    :param tg_id:
+    :param tg_username:
+    :return: nothing
+    '''
+    # TODO(@Сергей) реализовать
     pass
 
+def sql_is_user_in_db(tg_id):
+    '''
+    Функциф проверяет создан существует ли уже такой юзер в базе данных
+    :param tg_id:
+    :return: true/false
+    '''
+    # TODO(@Сергей) реализовать
+    pass
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
