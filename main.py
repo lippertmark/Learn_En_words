@@ -1,16 +1,29 @@
-# This is a sample Python script.
+import telebot
+from telebot import types
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+bot = telebot.TeleBot('тут будет апи ключ')
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+def sql_new_user(tg_id, tg_username):
+    # TODO сделать запись в БД
+    pass
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+@bot.message_handler(commands=['start'])
+def welcome(message):
+    pass
+    # TODO написать приветственное сообщение
+    # TODO сделать меню
+    # TODO обратиться к функции которую сделает @Сергей для создания пользоваетля sql_new_user(tg_id, tg_username)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    pass
+    # тут ответы на кнопки
+
+
+@bot.messege_handler(content_type=['text'])
+def text(message):
+    pass
+    # тут ответы на текст
