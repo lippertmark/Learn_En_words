@@ -30,7 +30,6 @@ def welcome(message):
     bot.send_sticker(message.chat.id, sticker)
      # в общем, у меня плохо с речью и приветствиями,
     # я накалякаю, а потом исправим на нормальное приветствие
-
 # TODO(@Олеся) сделать меню
     # про меню:
     # кнопка СЛОВА: callback_data='words'
