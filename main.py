@@ -25,6 +25,8 @@ def sql_is_user_in_db(tg_id):
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
+    user_id = message.from_user.id
+    user_username = message.from_user.username
 # TODO(@Олеся) написать приветственное сообщение
     sticker = open('welcome.webp', 'rb')
     bot.send_sticker(message.chat.id, sticker)
@@ -44,8 +46,7 @@ def welcome(message):
                          message.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
 
     # TODO(@Олеся) обратиться к функции которую сделает @Сергей для создания пользоваетля sql_new_user(tg_id, tg_username)
-    user = sql_new_user()
-    #не очень поняла, что именно требуется, после Сережи доделаю
+    sql_new_user(user_id, user_username)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
