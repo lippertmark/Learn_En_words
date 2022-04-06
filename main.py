@@ -28,7 +28,7 @@ def welcome(message):
     user_id = message.from_user.id
     user_username = message.from_user.username
 # TODO(@Олеся) написать приветственное сообщение
-    sticker = open('welcome.webp', 'rb')
+    sticker = open('img/welcome.webp', 'rb')
     bot.send_sticker(message.chat.id, sticker)
      # в общем, у меня плохо с речью и приветствиями,
     # я накалякаю, а потом исправим на нормальное приветствие
