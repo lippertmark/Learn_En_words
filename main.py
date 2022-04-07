@@ -1,27 +1,39 @@
 import telebot
 from telebot import types
+import sqlite3
 
-bot = telebot.TeleBot('тут будет апи ключ')
+bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
 
 
 def sql_new_user(tg_id, tg_username):
-    '''
+    """
     Функция реализует создание записи в базе данных о пользователе
     :param tg_id:
     :param tg_username:
     :return: nothing
-    '''
-    # TODO(@Сергей) реализовать
-    pass
+    """
+    conn = sqlite3.connect('EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"INSERT INTO User VALUES ({tg_id}, '{tg_username}', 0)"
+    cursor.execute(req)
+    conn.close()
+
 
 def sql_is_user_in_db(tg_id):
-    '''
+    """
     Функциф проверяет создан существует ли уже такой юзер в базе данных
     :param tg_id:
     :return: true/false
-    '''
-    # TODO(@Сергей) реализовать
-    pass
+    """
+    conn = sqlite3.connect('EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT tg_id FROM User"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+
+    return tg_id in result
+
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
@@ -69,7 +81,9 @@ def callback_inline(call):
     # тут ответы на кнопки
 
 
-@bot.messege_handler(content_type=['text'])
+@bot.message_handler(content_type=['text'])
 def text(message):
     pass
     # тут ответы на текст
+
+bot.polling(none_stop=True)
