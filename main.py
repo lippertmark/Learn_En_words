@@ -31,8 +31,11 @@ def sql_is_user_in_db(tg_id):
     cursor.execute(req)
     result = cursor.fetchall()
     conn.close()
+    for i in result:
+        if str(tg_id) in i:
+            return True
+    return False
 
-    return tg_id in result
 
 
 @bot.message_handler(commands=['start'])
