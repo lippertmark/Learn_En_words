@@ -32,7 +32,7 @@ def sql_is_user_in_db(tg_id):
     result = cursor.fetchall()
     conn.close()
     for i in result:
-        if str(tg_id) in i:
+        if tg_id in i:
             return True
     return False
 
