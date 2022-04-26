@@ -99,7 +99,9 @@ def is_learned(tg_id, word_id):
     :return: true/false
     '''
     # TODO (@Олеся)
-    pass
+    if sql_notes_by_user_and_word(tg_id, word_id).again == 0:
+        return True
+    return False
 
 
 def generate_word(tg_id):
@@ -125,7 +127,7 @@ def send_new_word(tg_id):
     '''
     # TODO (@Олеся)
     word = generate_word(tg_id)
-    bot.send_message(chat_id=tg_id.from_user.id, text="{word.word_en}")
+    bot.send_message(chat_id = tg_id.from_user.id, text=f'{word.word_en}')
 
 
 @bot.message_handler(commands=['start'])
@@ -148,30 +150,32 @@ def welcome(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    username = call.message.chat.username
-    # TODO (@Олеся) проверка на существование юзера
-    if call.message:
-        if call.data == 'profile':
-            markup2 = telebot.types.InlineKeyboardMarkup()
-            markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
-            markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
+    if sql_is_user_in_db(call.message.from_user.id):
+        username = call.message.chat.username
+        # TODO (@Олеся) проверка на существование юзера
+        if call.message:
+            if call.data == 'profile':
+                markup2 = telebot.types.InlineKeyboardMarkup()
+                markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
+                markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
 
-            achive = '✅' * sql_user_info(call.message.from_user.id).score
-            bot.send_message(call.message.chat.id,
-                             f'Ваш ник: {username}\n\nАктивность за 10 дней: {achive}\n\nВыученных слов: {sql_user_info(call.message.from_user.id).cnt_words_total}',
-                             reply_markup=markup2)
-        elif call.data == 'learn_new':
-            pass
-        elif call.data == 'repeat_words':
-            pass
-    # тут ответы на кнопки
+                achive = '✅' * sql_user_info(call.message.from_user.id).score
+                bot.send_message(call.message.chat.id,
+                                 f'Ваш ник: {username}\n\nАктивность за 10 дней: {achive}\n\nВыученных слов: {sql_user_info(call.message.from_user.id).cnt_words_total}',
+                                 reply_markup=markup2)
+            elif call.data == 'learn_new':
+                pass
+            elif call.data == 'repeat_words':
+                pass
+        # тут ответы на кнопки
 
 
 @bot.message_handler(content_type=['text'])
 def text(message):
-    # TODO (@Олеся) проверка на существование юзера
-    pass
-    # тут ответы на текст
+    if sql_is_user_in_db(message.from_user.id):
+        # TODO (@Олеся) проверка на существование юзера
+        pass
+        # тут ответы на текст
 
 
 bot.polling(none_stop=True)
