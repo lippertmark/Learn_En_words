@@ -5,6 +5,8 @@ import random
 
 import random
 
+import random
+
 bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
 GENERATED = 'GENERATED'
 RETRY = 'RETRY'
@@ -94,6 +96,47 @@ def sql_user_info(tg_id):
     '''
     # TODO (@Сергей)
     pass
+
+
+def is_learned(tg_id, word_id):
+    '''
+    Проверяет слово выучено пользователем или нет.
+    :param tg_id:
+    :param word_id:
+    :return: true/false
+    '''
+    # TODO (@Олеся)
+    if sql_notes_by_user_and_word(tg_id, word_id) != []:  # надо не как с классом
+        return True
+    return False
+
+
+def generate_word(tg_id):
+    '''
+    Генерирует новое слово, проверяя его на то что оно уже выучено, если выучено то генерируется новое.
+    :param tg_id:
+    :return: word (tuple): (word_id, word_en, word_ru, category, sentance, hate)
+    '''
+    # TODO (@Олеся)
+    word = random.choice(sql_all_words())
+    if is_learned(tg_id, word.word_id):  # надо не как с классом
+        generate_word(tg_id)
+    else:
+        return word
+
+
+def send_new_word(tg_id):
+    '''
+    Генерирует новое слово
+    Отправляет юзеру это слово
+    :param tg_id:
+    :return:
+    '''
+    # TODO (@Олеся) модификация не больше 10 слов
+    word = generate_word(tg_id)
+    bot.send_message(chat_id=tg_id.from_user.id, text=f'{word.word_en}')  # добавить предложение
+    new_note(tg_id, word_id, GENERATED, None)
+    # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
 
 
 def is_learned(tg_id, word_id):
