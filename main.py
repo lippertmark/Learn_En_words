@@ -99,7 +99,7 @@ def is_learned(tg_id, word_id):
     :return: true/false
     '''
     # TODO (@Олеся)
-    if sql_notes_by_user_and_word(tg_id, word_id).again == 0:
+    if sql_notes_by_user_and_word(tg_id, word_id).again == 0: # надо не как с классом
         return True
     return False
 
@@ -112,7 +112,7 @@ def generate_word(tg_id):
     '''
     # TODO (@Олеся)
     word = random.choice(sql_all_words())
-    if is_learned(tg_id, word.word_id):
+    if is_learned(tg_id, word.word_id): # надо не как с классом
         generate_word(tg_id)
     else:
         return word
@@ -127,7 +127,7 @@ def send_new_word(tg_id):
     '''
     # TODO (@Олеся)
     word = generate_word(tg_id)
-    bot.send_message(chat_id = tg_id.from_user.id, text=f'{word.word_en}')
+    bot.send_message(chat_id = tg_id.from_user.id, text=f'{word.word_en}') # добавить предложение
 
 
 @bot.message_handler(commands=['start'])
@@ -159,7 +159,7 @@ def callback_inline(call):
                 markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
                 markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
 
-                achive = '✅' * sql_user_info(call.message.from_user.id).score
+                achive = '✅' * sql_user_info(call.message.from_user.id).score  # надо не как с классом
                 bot.send_message(call.message.chat.id,
                                  f'Ваш ник: {username}\n\nАктивность за 10 дней: {achive}\n\nВыученных слов: {sql_user_info(call.message.from_user.id).cnt_words_total}',
                                  reply_markup=markup2)
