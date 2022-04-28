@@ -132,9 +132,10 @@ def add_new_word(word_en, word_ru, category, sentence, hate=0):
     conn.close()
 
 
-def inc_cnt_today(tg_id):
+def inc_cnt_today(tg_id, n=1):
     """
-    Инкременировать кол-во изученый слов у пользователя
+    Инкременировать кол-во изученый слов у пользователя на n
+    :param n:
     :param tg_id:
     :return:
     """

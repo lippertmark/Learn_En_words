@@ -98,7 +98,9 @@ def callback_inline(call):
                 # TODO (@Олеся) сделать обработчик вронг, отправка слова
                 pass
             elif call.data == 'accept':
-                # TODO (@Олеся) сообщение похвала, new_note(tg_id, word_id, RETRY, 0), отправка нового слова
+                # TODO (@Олеся) сообщение похвала
+                # new_note(tg_id, word_id, RETRY, 0)
+                # отправка нового слова
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
                 pass
         # тут ответы на кнопки
