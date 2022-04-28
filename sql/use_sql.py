@@ -41,7 +41,7 @@ def sql_all_words():
     """
     conn = sqlite3.connect('EnglishBotka.db')
     cursor = conn.cursor()
-    req = f"SELECT word_id, word_en, category, word_ru, sentance, hate FROM word"
+    req = f"SELECT * FROM word"
     cursor.execute(req)
     result = cursor.fetchall()
     conn.close()
@@ -49,43 +49,61 @@ def sql_all_words():
 
 
 def sql_notes_by_user(tg_id):
-    '''
+    """
     Выдает все записи о юзере из базы данных Note.
     :param tg_id: telegram user id
     :return: notes_by_user (list of tuples): (tg_id, date, word_id, type, again)
-    '''
-    # TODO (@Сергей)
-    pass
+    """
+    conn = sqlite3.connect('EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM Note"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+    for i in result:
+        if i[0] == tg_id:
+            return i
 
 
 def sql_notes_by_user_and_word(tg_id, word_id):
-    '''
+    """
     Выдает записи о юзере с конкретном словом.
 
     :param tg_id:
     :param word_id:
     :return: notes_user_word list(of tuples): (tg_id, date, word_id, type, again)
-    '''
-    # TODO (@Сергей)
-    pass
-
-
-def sql_user_is_exist(tg_id):
-    '''
-    Проверяет существует ли такой пользвователь.
-    :param tg_id:
-    :return: true/false
-    '''
-    # TODO (@Сергей)
-    pass
+    """
+    conn = sqlite3.connect('EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM Note"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+    for i in result:
+        if i[0] == tg_id and i[2] == word_id:
+            return i
 
 
 def sql_user_info(tg_id):
-    '''
+    """
     Выдает информацию о юзере.
     :param tg_id:
     :return:
         user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
-    '''
-    # TODO (@Сергей)
-    pass
+    """
+    conn = sqlite3.connect('EnglishBotka.db')
+    d = dict()
+    cursor = conn.cursor()
+    req = f"SELECT * FROM User"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+    for i in result:
+        if i[0] == tg_id:
+            d['tg_id'] = i[0]
+            d['tg_username'] = i[1]
+            d['score'] = i[2]
+            d['cnt_words_today'] = i[3]
+            d['cnt_words_total'] = i[4]
+            return d
+
