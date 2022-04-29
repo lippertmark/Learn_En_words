@@ -1,27 +1,31 @@
 import sqlite3
 
+GENERATED = 'GENERATED'
+RETRY = 'RETRY'
+DONE = 'DONE'
 
-def sql_new_user(tg_id, tg_username):
+def new_user(tg_id, tg_username):
     """
     Функция реализует создание записи в базе данных о пользователе
     :param tg_id:
     :param tg_username:
     :return: nothing
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
-    req = f"INSERT INTO User VALUES ({tg_id}, '{tg_username}', 0)"
+    req = f"INSERT INTO User VALUES ({tg_id}, '{tg_username}', 0, 0, 0)"
     cursor.execute(req)
+    conn.commit()
     conn.close()
 
 
-def sql_is_user_in_db(tg_id):
+def is_user_in_db(tg_id):
     """
     Функциф проверяет создан существует ли уже такой юзер в базе данных
     :param tg_id:
     :return: true/false
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
     req = f"SELECT tg_id FROM User"
     cursor.execute(req)
@@ -33,10 +37,10 @@ def sql_is_user_in_db(tg_id):
     return False
 
 
-def sql_all_words():
+def all_words():
     """
     Функция вытаскивает список слов всех из базы данных.
-    :return: all_words (list of touple(word_id, word_en, category, word_ru, sentance, hate)):
+    :return: all_words (list of touple(word_id, word_en, category, word_ru, sentence, hate)):
         лист всех слов из кортежей со всеми параметрам
     """
     conn = sqlite3.connect('EnglishBotka.db')
@@ -48,13 +52,13 @@ def sql_all_words():
     return result
 
 
-def sql_notes_by_user(tg_id):
+def notes_by_user(tg_id):
     """
     Выдает все записи о юзере из базы данных Note.
     :param tg_id: telegram user id
     :return: notes_by_user (list of tuples): (tg_id, date, word_id, type, again)
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
     req = f"SELECT * FROM Note"
     cursor.execute(req)
@@ -65,7 +69,7 @@ def sql_notes_by_user(tg_id):
             return i
 
 
-def sql_notes_by_user_and_word(tg_id, word_id):
+def notes_by_user_and_word(tg_id, word_id):
     """
     Выдает записи о юзере с конкретном словом.
 
@@ -73,7 +77,7 @@ def sql_notes_by_user_and_word(tg_id, word_id):
     :param word_id:
     :return: notes_user_word list(of tuples): (tg_id, date, word_id, type, again)
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
     req = f"SELECT * FROM Note"
     cursor.execute(req)
@@ -84,14 +88,15 @@ def sql_notes_by_user_and_word(tg_id, word_id):
             return i
 
 
-def sql_user_info(tg_id):
+def user_info(tg_id):
     """
     Выдает информацию о юзере.
     :param tg_id:
     :return:
         user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    # TODO (@Sergey) переделать под новые поля
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     d = dict()
     cursor = conn.cursor()
     req = f"SELECT * FROM User"
@@ -107,3 +112,69 @@ def sql_user_info(tg_id):
             d['cnt_words_total'] = i[4]
             return d
 
+
+def add_new_word(word_en, word_ru, category, sentence, hate=0):
+    """
+    Записывает слово в базу данныз Word
+    :param word_en: word in English
+    :param word_ru: word in Russian
+    :param category: category
+    :param sentence: sentence which have this word
+    :param hate: how many people have set dislike
+    :return: nothing
+    """
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"INSERT INTO Word(word_en, word_ru, category, sentance, hate)" \
+          f" VALUES ('{word_en}', '{word_ru}', '{category}', '{sentence}', {hate})"
+    print(req)
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
+
+def inc_cnt_today(tg_id, n=1):
+    """
+    Инкременировать кол-во изученый слов у пользователя на n
+    :param n:
+    :param tg_id:
+    :return:
+    """
+    # TODO (@Sergey)
+    pass
+
+def add_new_note(tg_id, word_id, type, again=0):
+    """
+    Add new note to data base Note
+    :param tg_id: telegram user id
+    :param word_id: word id from Word data base
+    :param type: type of note
+    :param again: how many times person are wrote this word successfully
+    :return:
+    """
+    # TODO (@Sergey)
+    pass
+
+def notes_with_conditions(db_name, conditions):
+    """
+    Возвращает все записи, которые подходят под условия.
+    :param db_name: Название базы данных
+    :param conditions: словарь с условиями
+    :return: list of tuples(all columns)
+    """
+    # TODO (@Sergey)
+    pass
+
+def word_info(word_id):
+    """
+    Информаци я о словов
+    :param word_id:
+    :return:
+    """
+    # TODO (@Sergey)
+    pass
+
+# cond = {
+#     'type': RETRY,
+#     'word_id': 12,
+# }
