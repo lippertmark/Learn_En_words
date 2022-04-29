@@ -95,6 +95,7 @@ def user_info(tg_id):
     :return:
         user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
     """
+    # TODO (@Sergey) переделать под новые поля
     conn = sqlite3.connect('sql/EnglishBotka.db')
     d = dict()
     cursor = conn.cursor()
@@ -154,3 +155,26 @@ def add_new_note(tg_id, word_id, type, again=0):
     # TODO (@Sergey)
     pass
 
+def notes_with_conditions(db_name, conditions):
+    """
+    Возвращает все записи, которые подходят под условия.
+    :param db_name: Название базы данных
+    :param conditions: словарь с условиями
+    :return: list of tuples(all columns)
+    """
+    # TODO (@Sergey)
+    pass
+
+def word_info(word_id):
+    """
+    Информаци я о словов
+    :param word_id:
+    :return:
+    """
+    # TODO (@Sergey)
+    pass
+
+# cond = {
+#     'type': RETRY,
+#     'word_id': 12,
+# }
