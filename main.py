@@ -5,9 +5,7 @@ import random
 
 LEARN = 5  # константа сколько раз повторить, чтобы выучить
 bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
-GENERATED = 'GENERATED'
-RETRY = 'RETRY'
-DONE = 'DONE'
+
 
 def is_learned(tg_id, word_id):
     """
@@ -45,13 +43,13 @@ def send_new_word(tg_id):
     :return:
     """
     # TODO (@Олеся) модификация не больше 10 слов
-    if user_info(tg_id).cnt_words_today == 10:
+    if sql.user_info(tg_id).cnt_words_today == 10:
         bot.send_message(chat_id=tg_id.from_user.id, text=f'Ты уже выучил 10 слов на сегодня. Возвращайся завтра!')
     else:
     # добавить предложение
         word = generate_word(tg_id)
         bot.send_message(chat_id=tg_id.from_user.id, text=f'Твое слово: {word.word_en}')  # добавить предложение
-        sql.new_note(tg_id, word_id, sql.GENERATED, None)
+        sql.new_note(tg_id, word.word_id, sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
 
 
@@ -65,7 +63,7 @@ def generate_choice(word_id):
     # TODO (@Олеся)
     list_of_selected_words = [word_id]
     list_of_words = [(word_id, sql.word_info(word_id)[3], sql.word_info(word_id)[1], 1)]
-    while len(list_of_wrong_words) < 4:
+    while len(list_of_words) < 4:
         wrong_word = random.choice(sql.all_words())
         if wrong_word[0] not in list_of_selected_words:
             list_of_words.append((wrong_word[0], wrong_word[3], wrong_word[1], 0))
@@ -101,7 +99,7 @@ def welcome(message):
     bot.send_message(message.chat.id,
                      'Привет, {0.first_name}!🥰\nЯ - <b>{1.first_name}</b>, бот для изучения английского языка.🤖'.format(
                          message.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
-    if not sql.is_user_in_db(call.message.from_user.id):
+    if not sql.is_user_in_db(message.from_user.id):
         sql.new_user(user_id, user_username)
 
 
@@ -134,10 +132,10 @@ def callback_inline(call):
                 pass
             elif call.data == 'accept':
                 # TODO (@Олеся) сообщение похвала
-                new_note(tg_id, word_id, RETRY, 0)
+                #sql.new_note(call.message.from_user.id, word_id, RETRY, 0)
                 send_new_word(call.message.from_user.id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
-                inc_cnt_today(call.message.from_user.id)
+                sql.inc_cnt_today(call.message.from_user.id)
         # тут ответы на кнопки
 
 
