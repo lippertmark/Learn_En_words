@@ -1,12 +1,13 @@
 import telebot
 from telebot import types
 import sql.use_sql as sql
-
 import random
 
 LEARN = 5  # константа сколько раз повторить, чтобы выучить
 bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
-
+GENERATED = 'GENERATED'
+RETRY = 'RETRY'
+DONE = 'DONE'
 
 def is_learned(tg_id, word_id):
     """
@@ -16,7 +17,7 @@ def is_learned(tg_id, word_id):
     :return: true/false
     """
     # TODO (@Олеся)
-    if sql.notes_by_user_and_word(tg_id, word_id) != []:  # надо не как с классом
+    if sql.notes_by_user_and_word(tg_id, word_id) != []:
         return True
     return False
 
@@ -28,11 +29,12 @@ def generate_word(tg_id):
     :return: word (tuple): (word_id, word_en, word_ru, category, sentence, hate)
     """
     # TODO (@Олеся)
-    word = random.choice(sql.all_words())
-    if is_learned(tg_id, word.word_id):  # надо не как с классом
-        generate_word(tg_id)
-    else:
-        return word
+    flag = 0
+    while flag == 0:
+        word = random.choice(sql.all_words())
+        if not is_learned(tg_id, word[0]):
+            flag = 1
+    return word
 
 
 def send_new_word(tg_id):
@@ -43,10 +45,15 @@ def send_new_word(tg_id):
     :return:
     """
     # TODO (@Олеся) модификация не больше 10 слов
-    word = generate_word(tg_id)
-    bot.send_message(chat_id=tg_id.from_user.id, text=f'{word.word_en}')  # добавить предложение
-    sql.new_note(tg_id, word_id, sql.GENERATED, None)
-    # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
+    if user_info(tg_id).cnt_words_today == 10:
+        bot.send_message(chat_id=tg_id.from_user.id, text=f'Ты уже выучил 10 слов на сегодня. Возвращайся завтра!')
+    else:
+    # добавить предложение
+        word = generate_word(tg_id)
+        bot.send_message(chat_id=tg_id.from_user.id, text=f'Твое слово: {word.word_en}')  # добавить предложение
+        sql.new_note(tg_id, word_id, sql.GENERATED, None)
+        # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
+
 
 
 def generate_choice(word_id):
@@ -56,7 +63,15 @@ def generate_choice(word_id):
     :return: list(of 4 tuples(word_id, word_ru, word_en, 1-correct answer, 0-wrong answer))
     """
     # TODO (@Олеся)
-    pass
+    list_of_selected_words = [word_id]
+    list_of_words = [(word_id, sql.word_info(word_id)[3], sql.word_info(word_id)[1], 1)]
+    while len(list_of_wrong_words) < 4:
+        wrong_word = random.choice(sql.all_words())
+        if wrong_word[0] not in list_of_selected_words:
+            list_of_words.append((wrong_word[0], wrong_word[3], wrong_word[1], 0))
+            list_of_selected_words.append(wrong_word[0])
+    return list_of_words
+
 
 
 def send_repeat_word(tg_id, word_id):
@@ -86,7 +101,8 @@ def welcome(message):
     bot.send_message(message.chat.id,
                      'Привет, {0.first_name}!🥰\nЯ - <b>{1.first_name}</b>, бот для изучения английского языка.🤖'.format(
                          message.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
-    sql.new_user(user_id, user_username)
+    if not sql.is_user_in_db(call.message.from_user.id):
+        sql.new_user(user_id, user_username)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -107,7 +123,7 @@ def callback_inline(call):
                                  reply_markup=markup2)
             elif call.data == 'learn_new':
                 # TODO (@Олеся) вызввать функцию send_new_word
-                pass
+                send_new_word(call.message.from_user.id)
             elif call.data == 'repeat_words':
                 # TODO (@Amir)
                 # используешь фцнкцию notes_by_user фильтр по RETRY и again < LEARN
@@ -118,10 +134,10 @@ def callback_inline(call):
                 pass
             elif call.data == 'accept':
                 # TODO (@Олеся) сообщение похвала
-                # new_note(tg_id, word_id, RETRY, 0)
-                # отправка нового слова
+                new_note(tg_id, word_id, RETRY, 0)
+                send_new_word(call.message.from_user.id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
-                pass
+                inc_cnt_today(call.message.from_user.id)
         # тут ответы на кнопки
 
 
@@ -131,13 +147,13 @@ def text(message):
         pass
         print()
         # TODO (@Amir)
-        # 1. либо похвола с кнопкой Повторять дальше(callback_data='repeat_words')
+        # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
         # - добавить ноту с again+1
         # - в базе данных User repeat_word_id set NULL
         # 2. либо просим ввести заново
         # тут ответы на текст
     else:
-        pass
+        bot.send_message(message.chat.id, 'Напиши "/start", чтобы начать пользоваться ботом!')
         # TODO (@Олеся) нужно сказать напиши /start
 
 
