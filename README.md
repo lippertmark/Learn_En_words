@@ -1,5 +1,5 @@
 # Learn English words
-### Telegram bot for learning english word.
+Telegram bot for learning english word.
 
 ## Run
 To launch the project 
@@ -8,7 +8,8 @@ To launch the project
  ```
 
 ## Examples
-
+![profile.png](sources/profile.png)
+![start.png](sources/start.png)
 
 ## Contributors
 | Person      | GitHub | Role |
