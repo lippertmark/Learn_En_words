@@ -51,8 +51,19 @@ def send_new_word(tg_id):
         bot.send_message(chat_id=tg_id.from_user.id, text=f'Твое слово: {word.word_en}')  # добавить предложение
         sql.new_note(tg_id, word.word_id, sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
-
-
+        my_words = generate_word(word.word_id)
+        markup = telebot.types.InlineKeyboardMarkup()
+        item1 = telebot.types.InlineKeyboardButton(text=word.word_ru, callback_data='accept')
+        item2 = telebot.types.InlineKeyboardButton(text=my_words[1].word_ru, callback_data='wrong')
+        item3 = telebot.types.InlineKeyboardButton(text=my_words[2].word_ru, callback_data='wrong')
+        item4 = telebot.types.InlineKeyboardButton(text=my_words[3].word_ru, callback_data='wrong')
+        spisok = [item4, item3, item2, item1]
+        random.shuffle(spisok)
+        for i in spisok:
+            markup.add(i)
+    bot.send_message(chat_id=tg_id.from_user.id,
+                     text='Выбери правильный вариант ответа:'.format(
+                         tg_id.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
 
 def generate_choice(word_id):
     """
@@ -114,9 +125,15 @@ def callback_inline(call):
                 markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
                 markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
 
-                achieve = '✅' * sql.user_info(tg_id).score  # надо не как с классом
+                achieve = list(sql.user_info(tg_id).score)
+                galochki = ''
+                for elem in achieve:
+                    if elem == 0:
+                        galochki += '❌'
+                    else:
+                        galochki += '✅'
                 bot.send_message(tg_id,
-                                 f'Ваш ник: {username}\n\nАктивность за 10 дней: {achieve}\n\nВыученных слов: '
+                                 f'Ваш ник: {username}\n\nАктивность за 10 дней: {galochki}\n\nВыученных слов: '
                                  f'{sql.user_info(tg_id).cnt_words_total}',
                                  reply_markup=markup2)
             elif call.data == 'learn_new':
@@ -129,10 +146,14 @@ def callback_inline(call):
                 pass
             elif call.data == 'wrong':
                 # TODO (@Олеся) сделать обработчик вронг, отправка слова
-                pass
+                bot.send_message(tg_id,
+                                 'Не верно, но не расстраивайся, в следующий раз все получится!😚')
+                send_new_word(tg_id)
             elif call.data == 'accept':
+                bot.send_message(tg_id,
+                                 'Правильный ответ! Умница!🥰')
                 # TODO (@Олеся) сообщение похвала
-                #sql.new_note(call.message.from_user.id, word_id, RETRY, 0)
+                sql.new_note(call.message.from_user.id, tg_id.word_id, sql.RETRY, 0)
                 send_new_word(call.message.from_user.id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
                 sql.inc_cnt_today(call.message.from_user.id)
