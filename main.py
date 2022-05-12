@@ -43,20 +43,20 @@ def send_new_word(tg_id):
     :return:
     """
     # TODO (@Олеся) модификация не больше 10 слов
-    if sql.user_info(tg_id).cnt_words_today == 10:
-        bot.send_message(chat_id=tg_id.from_user.id, text=f'Ты уже выучил 10 слов на сегодня. Возвращайся завтра!')
+    if sql.user_info(tg_id)['cnt_words_today'] == 10:
+        bot.send_message(chat_id=tg_id, text=f'Ты уже выучил 10 слов на сегодня. Возвращайся завтра!')
     else:
-    # добавить предложение
+        # добавить предложение
         word = generate_word(tg_id)
-        bot.send_message(chat_id=tg_id.from_user.id, text=f'Твое слово: {word.word_en}')  # добавить предложение
+        bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')  # добавить предложение
         sql.new_note(tg_id, word.word_id, sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
-        my_words = generate_word(word.word_id)
+        my_words = generate_word(word[0])
         markup = telebot.types.InlineKeyboardMarkup()
-        item1 = telebot.types.InlineKeyboardButton(text=word.word_ru, callback_data='accept')
-        item2 = telebot.types.InlineKeyboardButton(text=my_words[1].word_ru, callback_data='wrong')
-        item3 = telebot.types.InlineKeyboardButton(text=my_words[2].word_ru, callback_data='wrong')
-        item4 = telebot.types.InlineKeyboardButton(text=my_words[3].word_ru, callback_data='wrong')
+        item1 = telebot.types.InlineKeyboardButton(text=word[2], callback_data='accept')
+        item2 = telebot.types.InlineKeyboardButton(text=my_words[1][2], callback_data='wrong')
+        item3 = telebot.types.InlineKeyboardButton(text=my_words[2][2], callback_data='wrong')
+        item4 = telebot.types.InlineKeyboardButton(text=my_words[3][2], callback_data='wrong')
         spisok = [item4, item3, item2, item1]
         random.shuffle(spisok)
         for i in spisok:
@@ -116,9 +116,9 @@ def welcome(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    if sql.is_user_in_db(call.message.from_user.id):
+    tg_id = call.from_user.id
+    if sql.is_user_in_db(tg_id):
         username = call.message.chat.username
-        tg_id = call.message.from_user.id
         if call.message:
             if call.data == 'profile':
                 markup2 = telebot.types.InlineKeyboardMarkup()
@@ -153,10 +153,10 @@ def callback_inline(call):
                 bot.send_message(tg_id,
                                  'Правильный ответ! Умница!🥰')
                 # TODO (@Олеся) сообщение похвала
-                sql.new_note(call.message.from_user.id, tg_id.word_id, sql.RETRY, 0)
+                sql.new_note(tg_id, tg_id['word_id'], sql.RETRY, 0)
                 send_new_word(call.message.from_user.id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
-                sql.inc_cnt_today(call.message.from_user.id)
+                sql.inc_cnt_today(tg_id)
         # тут ответы на кнопки
 
 
