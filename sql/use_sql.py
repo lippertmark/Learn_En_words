@@ -95,7 +95,6 @@ def user_info(tg_id):
     :return:
         user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
     """
-    # TODO (@Sergey) переделать под новые поля
     conn = sqlite3.connect('sql/EnglishBotka.db')
     d = dict()
     cursor = conn.cursor()
@@ -140,8 +139,13 @@ def inc_cnt_today(tg_id, n=1):
     :param tg_id:
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"UPDATE User SET cnt_words_today = cnt_words_today + {n} WHERE tg_id = {tg_id}"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
 
 def add_new_note(tg_id, word_id, type, again=0):
     """
@@ -152,8 +156,16 @@ def add_new_note(tg_id, word_id, type, again=0):
     :param again: how many times person are wrote this word successfully
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    import datetime
+    data = datetime.date.today()
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"INSERT INTO Note(tg_id, date, word_id, type, again)" \
+          f"VALUES ('{tg_id}', '{data}', '{word_id}', '{type}', '{again}')"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
 
 def notes_with_conditions(db_name, conditions):
     """
@@ -162,8 +174,14 @@ def notes_with_conditions(db_name, conditions):
     :param conditions: словарь с условиями
     :return: list of tuples(all columns)
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM {db_name} WHERE {conditions}"
+    print(req)
+    cursor.execute(req)
+    conn.close()
+    #думаю
+
 
 def word_info(word_id):
     """
@@ -171,8 +189,15 @@ def word_info(word_id):
     :param word_id:
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM Word"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+    for i in result:
+        if i[0] == word_id:
+            return i
 
 # cond = {
 #     'type': RETRY,
