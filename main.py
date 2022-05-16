@@ -119,6 +119,7 @@ def callback_inline(call):
     tg_id = call.from_user.id
     if sql.is_user_in_db(tg_id):
         username = call.message.chat.username
+
         if call.message:
             if call.data == 'profile':
                 markup2 = telebot.types.InlineKeyboardMarkup()
@@ -138,7 +139,7 @@ def callback_inline(call):
                                  reply_markup=markup2)
             elif call.data == 'learn_new':
                 # TODO (@Олеся) вызввать функцию send_new_word
-                send_new_word(call.message.from_user.id)
+                send_new_word(call.from_user.id)
             elif call.data == 'repeat_words':
                 # TODO (@Amir)
                 # используешь фцнкцию notes_by_user фильтр по RETRY и again < LEARN
@@ -153,6 +154,7 @@ def callback_inline(call):
                 bot.send_message(tg_id,
                                  'Правильный ответ! Умница!🥰')
                 # TODO (@Олеся) сообщение похвала
+
                 sql.new_note(tg_id, tg_id['word_id'], sql.RETRY, 0)
                 send_new_word(call.message.from_user.id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
@@ -164,7 +166,6 @@ def callback_inline(call):
 def text(message):
     if sql.is_user_in_db(message.from_user.id):
         pass
-        print()
         # TODO (@Amir)
         # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
         # - добавить ноту с again+1
