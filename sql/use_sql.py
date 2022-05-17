@@ -98,7 +98,7 @@ def user_info(tg_id):
     Выдает информацию о юзере.
     :param tg_id:
     :return:
-        user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
+        user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total, new_word_id, repeat_word_id
     """
 
     conn = sqlite3.connect('sql/EnglishBotka.db')
@@ -179,6 +179,21 @@ def inc_cnt_today(tg_id, n=1):
     conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
     req = f"UPDATE User SET cnt_words_today = cnt_words_today + {n} WHERE tg_id = {tg_id}"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
+
+def inc_aqain_retry_word(tg_id, word_id):
+    """
+    Инкременировать кол-во повторений у слова
+    :param tg_id:
+    :param word_id:
+    :return:
+    """
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"UPDATE Note SET again = again + {1} WHERE (tg_id = {tg_id} AND word_id = {word_id} AND type = 'RETRY')"
     cursor.execute(req)
     conn.commit()
     conn.close()

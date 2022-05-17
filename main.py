@@ -57,6 +57,8 @@ def send_new_word(tg_id):
         bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')
         sql.add_new_note(tg_id, word[0], sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
+
+        sql.set_new_word_id(tg_id, word[0])
         my_words = generate_choice(word[0])
         markup = telebot.types.InlineKeyboardMarkup()
         item1 = telebot.types.InlineKeyboardButton(text=word[2], callback_data='accept')
@@ -103,7 +105,6 @@ def generate_repeat_word(tg_id):
     repeat_word = random.choice(all_retry_words)
 
     return repeat_word
-
 
 
 
@@ -168,20 +169,20 @@ def callback_inline(call):
                 # используешь фцнкцию notes_by_user фильтр по RETRY и again < LEARN
                 # выдать слово send_repeat_word
             elif call.data == 'wrong':
-                    # TODO (@Олеся) сделать обработчик вронг, отправка слова
-                    bot.send_message(tg_id,
-                                     'Не верно, но не расстраивайся, в следующий раз все получится! 😚')
-                    send_new_word(tg_id)
-            elif call.data == 'accept':
-                    bot.send_message(tg_id,
-                                     'Правильный ответ! Умница! 🥰')
-                    # TODO (@Олеся) сообщение похвала
 
-                    sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
-                    send_new_word(tg_id)
-                    # TODO (@Олеся) инкриминировать счетчик выученных слов
-                    sql.inc_cnt_today(tg_id)
-                # тут ответы на кнопки
+                # TODO (@Олеся) сделать обработчик вронг, отправка слова
+                bot.send_message(tg_id,
+                                 'Не верно, но не расстраивайся, в следующий раз все получится! 😚')
+                send_new_word(tg_id)
+            elif call.data == 'accept':
+                bot.send_message(tg_id,
+                                 'Правильный ответ! Умница! 🥰')
+                # TODO (@Олеся) сообщение похвала
+                sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
+                send_new_word(tg_id)
+                # TODO (@Олеся) инкриминировать счетчик выученных слов
+                sql.inc_cnt_today(tg_id)
+        # тут ответы на кнопки
 
 
 @bot.message_handler(content_type=['text'])
@@ -201,6 +202,7 @@ def text(message):
             sql.set_repeat_word_id(tg_id, 0)
         else:
             bot.send_message(chat_id=tg_id.from_user.id, text='Попробуй ввести снова')
+
         # TODO (@Amir)
         # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
         # - добавить ноту с again+1
@@ -213,3 +215,4 @@ def text(message):
 
 
 bot.polling(none_stop=True)
+# тууган туган як
