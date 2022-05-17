@@ -99,7 +99,7 @@ def generate_repeat_word(tg_id):
     notes = sql.notes_by_user(tg_id)
     all_retry_words = set()
     for note in notes:
-        if note[3] == RETRY and note[4] < LEARN:
+        if note[3] == sql.RETRY and note[4] < LEARN:
             all_retry_words.add(note[2])
     all_retry_words = list(all_retry_words)
     repeat_word = random.choice(all_retry_words)
@@ -108,17 +108,16 @@ def generate_repeat_word(tg_id):
 
 
 
-def send_repeat_word(tg_id, word_id):
+def send_repeat_word(tg_id):
     """
     Отправляет пользователю слово для повторения.
     :param tg_id:
-    :param word_id:
     :return: nothing
     """
     # TODO (@Amir)
     word_id = generate_repeat_word(tg_id)
     word = sql.word_info(word_id)
-    bot.send_message(chat_id=tg_id.from_user.id, text=f'Введи английский перевод этого слова: {word[2]}')
+    bot.send_message(chat_id=tg_id, text=f'Введи английский перевод этого слова: {word[2]}')
     sql.set_repeat_word_id(tg_id, word[0])
 
 
@@ -185,8 +184,9 @@ def callback_inline(call):
         # тут ответы на кнопки
 
 
-@bot.message_handler(content_type=['text'])
-def text(message):
+
+@bot.message_handler(content_types=['text'])
+def lalala(message):
     tg_id = message.from_user.id
     if sql.is_user_in_db(tg_id):
 
@@ -194,14 +194,11 @@ def text(message):
         eng = sql.word_info(user)
         if message.text == eng[1]:
             bot.send_message(chat_id=tg_id, text='Правильно, молодчина!')
-            markup = types.ReplyKeyboardMarkup()
-            knopka = telebot.types.InlineKeyboardButton(text='Повторять дальше📚', callback_data='repeat_words')
-            markup.add(knopka)
-            bot.send_message(tg_id, 'Можем идти дальше?', reply_markup=markup)
             sql.inc_again_retry_word(tg_id, user)
             sql.set_repeat_word_id(tg_id, 0)
+            send_repeat_word(tg_id)
         else:
-            bot.send_message(chat_id=tg_id.from_user.id, text='Попробуй ввести снова')
+            bot.send_message(chat_id=tg_id, text='Попробуй ввести снова')
 
         # TODO (@Amir)
         # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
