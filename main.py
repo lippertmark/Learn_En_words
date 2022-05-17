@@ -12,12 +12,11 @@ def is_learned(tg_id, word_id):
     Проверяет слово выучено пользователем или нет.
     :param tg_id:
     :param word_id:
-    :return: true/false
+    :return: true(learned)/false(not learned)
     """
     # TODO (@Олеся)
     if sql.notes_by_user_and_word(tg_id, word_id) != []:
         return True
-    return False
 
 
 def generate_word(tg_id):
@@ -28,8 +27,9 @@ def generate_word(tg_id):
     """
     # TODO (@Олеся)
     flag = 0
+    words = sql.all_words()
     while flag == 0:
-        word = random.choice(sql.all_words())
+        word = random.choice(words)
         if not is_learned(tg_id, word[0]):
             flag = 1
     return word
@@ -48,22 +48,21 @@ def send_new_word(tg_id):
     else:
         # добавить предложение
         word = generate_word(tg_id)
-        bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')  # добавить предложение
-        sql.new_note(tg_id, word.word_id, sql.GENERATED, None)
+        bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')
+        sql.add_new_note(tg_id, word[0], sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
-        my_words = generate_word(word[0])
+        my_words = generate_choice(word[0])
         markup = telebot.types.InlineKeyboardMarkup()
         item1 = telebot.types.InlineKeyboardButton(text=word[2], callback_data='accept')
-        item2 = telebot.types.InlineKeyboardButton(text=my_words[1][2], callback_data='wrong')
-        item3 = telebot.types.InlineKeyboardButton(text=my_words[2][2], callback_data='wrong')
-        item4 = telebot.types.InlineKeyboardButton(text=my_words[3][2], callback_data='wrong')
+        item2 = telebot.types.InlineKeyboardButton(text=my_words[1][1], callback_data='wrong')
+        item3 = telebot.types.InlineKeyboardButton(text=my_words[2][1], callback_data='wrong')
+        item4 = telebot.types.InlineKeyboardButton(text=my_words[3][1], callback_data='wrong')
         spisok = [item4, item3, item2, item1]
         random.shuffle(spisok)
         for i in spisok:
             markup.add(i)
-    bot.send_message(chat_id=tg_id.from_user.id,
-                     text='Выбери правильный вариант ответа:'.format(
-                         tg_id.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
+    bot.send_message(chat_id=tg_id, text='Выбери правильный вариант ответа:', reply_markup=markup)
+
 
 def generate_choice(word_id):
     """
@@ -73,14 +72,13 @@ def generate_choice(word_id):
     """
     # TODO (@Олеся)
     list_of_selected_words = [word_id]
-    list_of_words = [(word_id, sql.word_info(word_id)[3], sql.word_info(word_id)[1], 1)]
+    list_of_words = [(word_id, sql.word_info(word_id)[2], sql.word_info(word_id)[1], 1)]
     while len(list_of_words) < 4:
         wrong_word = random.choice(sql.all_words())
         if wrong_word[0] not in list_of_selected_words:
-            list_of_words.append((wrong_word[0], wrong_word[3], wrong_word[1], 0))
+            list_of_words.append((wrong_word[0], wrong_word[2], wrong_word[1], 0))
             list_of_selected_words.append(wrong_word[0])
     return list_of_words
-
 
 
 def send_repeat_word(tg_id, word_id):
@@ -101,10 +99,10 @@ def welcome(message):
     user_username = message.from_user.username
     sticker = open('img/welcome.webp', 'rb')
     bot.send_sticker(message.chat.id, sticker)
-    markup = telebot.types.InlineKeyboardMarkup()
-    item1 = telebot.types.InlineKeyboardButton(text='Профиль🗂', callback_data='profile')
-    item2 = telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new')
-    item3 = telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words')
+    markup = telebot.types.InlineKeyboardMarkup(row_width=1)
+    item1 = telebot.types.InlineKeyboardButton(text='Профиль 🗂', callback_data='profile')
+    item2 = telebot.types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new')
+    item3 = telebot.types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words')
 
     markup.add(item1, item2, item3)
     bot.send_message(message.chat.id,
@@ -126,20 +124,14 @@ def callback_inline(call):
                 markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
                 markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
 
-                achieve = list(sql.user_info(tg_id).score)
-                galochki = ''
-                for elem in achieve:
-                    if elem == 0:
-                        galochki += '❌'
-                    else:
-                        galochki += '✅'
+                score = sql.user_info(tg_id)['score']
                 bot.send_message(tg_id,
-                                 f'Ваш ник: {username}\n\nАктивность за 10 дней: {galochki}\n\nВыученных слов: '
-                                 f'{sql.user_info(tg_id).cnt_words_total}',
+                                 f'Ваш ник 😊: {username}\n\nТвои очки 😋: {score}\n\nВыученных слов 🤌: '
+                                 f'{sql.user_info(tg_id)["cnt_words_total"]}',
                                  reply_markup=markup2)
             elif call.data == 'learn_new':
                 # TODO (@Олеся) вызввать функцию send_new_word
-                send_new_word(call.from_user.id)
+                send_new_word(tg_id)
             elif call.data == 'repeat_words':
                 # TODO (@Amir)
                 # используешь фцнкцию notes_by_user фильтр по RETRY и again < LEARN
@@ -155,8 +147,8 @@ def callback_inline(call):
                                  'Правильный ответ! Умница!🥰')
                 # TODO (@Олеся) сообщение похвала
 
-                sql.new_note(tg_id, tg_id['word_id'], sql.RETRY, 0)
-                send_new_word(call.message.from_user.id)
+                sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
+                send_new_word(tg_id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
                 sql.inc_cnt_today(tg_id)
         # тут ответы на кнопки
