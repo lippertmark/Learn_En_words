@@ -15,7 +15,12 @@ def is_learned(tg_id, word_id):
     :return: true(learned)/false(not learned)
     """
     # TODO (@Олеся)
-    if sql.notes_by_user_and_word(tg_id, word_id) != []:
+    notes = sql.notes_by_user_and_word(tg_id, word_id)
+    if notes == []:
+        return False
+    elif len(notes) == 1 and notes[0][3] == 'GENERATED':
+        return False
+    else:
         return True
 
 
@@ -106,7 +111,7 @@ def welcome(message):
 
     markup.add(item1, item2, item3)
     bot.send_message(message.chat.id,
-                     'Привет, {0.first_name}!🥰\nЯ - <b>{1.first_name}</b>, бот для изучения английского языка.🤖'.format(
+                     'Привет, {0.first_name}! 🥰\nЯ - <b>{1.first_name}</b>, бот для изучения английского языка. 🤖'.format(
                          message.from_user, bot.get_me()), parse_mode='html', reply_markup=markup)
     if not sql.is_user_in_db(message.from_user.id):
         sql.new_user(user_id, user_username)
@@ -121,8 +126,8 @@ def callback_inline(call):
         if call.message:
             if call.data == 'profile':
                 markup2 = telebot.types.InlineKeyboardMarkup()
-                markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова🔎', callback_data='learn_new'))
-                markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова📚', callback_data='repeat_words'))
+                markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new'))
+                markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words'))
 
                 score = sql.user_info(tg_id)['score']
                 bot.send_message(tg_id,
@@ -140,11 +145,11 @@ def callback_inline(call):
             elif call.data == 'wrong':
                 # TODO (@Олеся) сделать обработчик вронг, отправка слова
                 bot.send_message(tg_id,
-                                 'Не верно, но не расстраивайся, в следующий раз все получится!😚')
+                                 'Не верно, но не расстраивайся, в следующий раз все получится! 😚')
                 send_new_word(tg_id)
             elif call.data == 'accept':
                 bot.send_message(tg_id,
-                                 'Правильный ответ! Умница!🥰')
+                                 'Правильный ответ! Умница! 🥰')
                 # TODO (@Олеся) сообщение похвала
 
                 sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
@@ -170,3 +175,4 @@ def text(message):
 
 
 bot.polling(none_stop=True)
+# тууган туган як
