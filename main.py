@@ -24,6 +24,7 @@ def is_learned(tg_id, word_id):
         return True
 
 
+
 def generate_word(tg_id):
     """
     Генерирует новое слово, проверяя его на то что оно уже выучено, если выучено то генерируется новое.
