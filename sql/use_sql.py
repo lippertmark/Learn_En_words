@@ -4,6 +4,7 @@ GENERATED = 'GENERATED'
 RETRY = 'RETRY'
 DONE = 'DONE'
 
+
 def new_user(tg_id, tg_username):
     """
     Функция реализует создание записи в базе данных о пользователе
@@ -13,7 +14,7 @@ def new_user(tg_id, tg_username):
     """
     conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
-    req = f"INSERT INTO User VALUES ({tg_id}, '{tg_username}', 0, 0, 0)"
+    req = f"INSERT INTO User VALUES ({tg_id}, '{tg_username}', 0, 0, 0, 0, 0)"
     cursor.execute(req)
     conn.commit()
     conn.close()
@@ -40,14 +41,15 @@ def is_user_in_db(tg_id):
 def all_words():
     """
     Функция вытаскивает список слов всех из базы данных.
-    :return: all_words (list of touple(word_id, word_en, category, word_ru, sentence, hate)):
+    :return: all_words (list of touple(word_id, word_en, category, word_ru, sentance, hate)):
         лист всех слов из кортежей со всеми параметрам
     """
-    conn = sqlite3.connect('EnglishBotka.db')
+    conn = sqlite3.connect('sql/EnglishBotka.db')
     cursor = conn.cursor()
     req = f"SELECT * FROM word"
     cursor.execute(req)
     result = cursor.fetchall()
+
     conn.close()
     return result
 
@@ -64,15 +66,16 @@ def notes_by_user(tg_id):
     cursor.execute(req)
     result = cursor.fetchall()
     conn.close()
+    list = []
     for i in result:
         if i[0] == tg_id:
-            return i
+            list.append(i)
+    return list
 
 
 def notes_by_user_and_word(tg_id, word_id):
     """
     Выдает записи о юзере с конкретном словом.
-
     :param tg_id:
     :param word_id:
     :return: notes_user_word list(of tuples): (tg_id, date, word_id, type, again)
@@ -83,9 +86,11 @@ def notes_by_user_and_word(tg_id, word_id):
     cursor.execute(req)
     result = cursor.fetchall()
     conn.close()
+    list = []
     for i in result:
         if i[0] == tg_id and i[2] == word_id:
-            return i
+            list.append(i)
+    return list
 
 
 def user_info(tg_id):
@@ -95,8 +100,9 @@ def user_info(tg_id):
     :return:
         user info (dict): Словарь с ключами tg_id, tg_username, score, cnt_words_today, cnt_words_total
     """
-    # TODO (@Sergey) переделать под новые поля
+
     conn = sqlite3.connect('sql/EnglishBotka.db')
+
     d = dict()
     cursor = conn.cursor()
     req = f"SELECT * FROM User"
@@ -110,8 +116,38 @@ def user_info(tg_id):
             d['score'] = i[2]
             d['cnt_words_today'] = i[3]
             d['cnt_words_total'] = i[4]
+            d['new_word_id'] = i[5]
+            d['repeat_word_id'] = i[6]
             return d
 
+def set_new_word_id(tg_id, word_id):
+    """
+    Записывает в базе данных в таблицу User по tg_id в поле new_word_id значение word_id
+    :param tg_id:
+    :param word_id:
+    :return:
+    """
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"UPDATE User SET new_word_id = {word_id} WHERE tg_id = {tg_id}"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
+
+def set_repeat_word_id(tg_id, word_id):
+    """
+    Записывает в базе данных в таблицу User по tg_id в поле repeat_word_id значение word_id
+    :param tg_id:
+    :param word_id:
+    :return:
+    """
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"UPDATE User SET repeat_word_id = {word_id} WHERE tg_id = {tg_id}"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
 
 def add_new_word(word_en, word_ru, category, sentence, hate=0):
     """
@@ -140,8 +176,13 @@ def inc_cnt_today(tg_id, n=1):
     :param tg_id:
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"UPDATE User SET cnt_words_today = cnt_words_today + {n} WHERE tg_id = {tg_id}"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
 
 def add_new_note(tg_id, word_id, type, again=0):
     """
@@ -152,8 +193,16 @@ def add_new_note(tg_id, word_id, type, again=0):
     :param again: how many times person are wrote this word successfully
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    import datetime
+    data = datetime.date.today()
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"INSERT INTO Note(tg_id, date, word_id, type, again)" \
+          f"VALUES ('{tg_id}', '{data}', '{word_id}', '{type}', '{again}')"
+    cursor.execute(req)
+    conn.commit()
+    conn.close()
+
 
 def notes_with_conditions(db_name, conditions):
     """
@@ -162,8 +211,14 @@ def notes_with_conditions(db_name, conditions):
     :param conditions: словарь с условиями
     :return: list of tuples(all columns)
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM {db_name} WHERE {conditions}"
+    print(req)
+    cursor.execute(req)
+    conn.close()
+    # думаю
+
 
 def word_info(word_id):
     """
@@ -171,8 +226,15 @@ def word_info(word_id):
     :param word_id:
     :return:
     """
-    # TODO (@Sergey)
-    pass
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    req = f"SELECT * FROM Word"
+    cursor.execute(req)
+    result = cursor.fetchall()
+    conn.close()
+    for i in result:
+        if i[0] == word_id:
+            return i
 
 # cond = {
 #     'type': RETRY,
