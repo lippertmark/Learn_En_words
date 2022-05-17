@@ -183,6 +183,7 @@ def inc_cnt_today(tg_id, n=1):
     conn.commit()
     conn.close()
 
+
 def inc_aqain_retry_word(tg_id, word_id):
     """
     Инкременировать кол-во повторений у слова

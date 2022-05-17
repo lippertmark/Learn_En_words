@@ -24,6 +24,7 @@ def is_learned(tg_id, word_id):
         return True
 
 
+
 def generate_word(tg_id):
     """
     Генерирует новое слово, проверяя его на то что оно уже выучено, если выучено то генерируется новое.
@@ -56,6 +57,7 @@ def send_new_word(tg_id):
         bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')
         sql.add_new_note(tg_id, word[0], sql.GENERATED, None)
         # TODO (@Олеся) добавить инлайнкейборд для выбора правильного варианта
+
         sql.set_new_word_id(tg_id, word[0])
         my_words = generate_choice(word[0])
         markup = telebot.types.InlineKeyboardMarkup()
@@ -87,6 +89,25 @@ def generate_choice(word_id):
     return list_of_words
 
 
+def generate_repeat_word(tg_id):
+    """
+    выбирает слово для повторения
+    :param tg_id:
+    :return: word_id:
+    """
+    flag = 0
+    notes = sql.notes_by_user(tg_id)
+    all_retry_words = set()
+    for note in notes:
+        if note[3] == RETRY and note[4] < LEARN:
+            all_retry_words.add(note[2])
+    all_retry_words = list(all_retry_words)
+    repeat_word = random.choice(all_retry_words)
+
+    return repeat_word
+
+
+
 def send_repeat_word(tg_id, word_id):
     """
     Отправляет пользователю слово для повторения.
@@ -95,7 +116,10 @@ def send_repeat_word(tg_id, word_id):
     :return: nothing
     """
     # TODO (@Amir)
-    pass
+    word_id = generate_repeat_word(tg_id)
+    word = sql.word_info(word_id)
+    bot.send_message(chat_id=tg_id.from_user.id, text=f'Введи английский перевод этого слова: {word[2]}')
+    sql.set_repeat_word_id(tg_id, word[0])
 
 
 @bot.message_handler(commands=['start'])
@@ -140,10 +164,12 @@ def callback_inline(call):
                 send_new_word(tg_id)
             elif call.data == 'repeat_words':
                 # TODO (@Amir)
+
+                send_repeat_word(tg_id)
                 # используешь фцнкцию notes_by_user фильтр по RETRY и again < LEARN
                 # выдать слово send_repeat_word
-                pass
             elif call.data == 'wrong':
+
                 # TODO (@Олеся) сделать обработчик вронг, отправка слова
                 bot.send_message(tg_id,
                                  'Не верно, но не расстраивайся, в следующий раз все получится! 😚')
@@ -152,7 +178,6 @@ def callback_inline(call):
                 bot.send_message(tg_id,
                                  'Правильный ответ! Умница! 🥰')
                 # TODO (@Олеся) сообщение похвала
-                print(sql.user_info(tg_id))
                 sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
                 send_new_word(tg_id)
                 # TODO (@Олеся) инкриминировать счетчик выученных слов
@@ -162,8 +187,22 @@ def callback_inline(call):
 
 @bot.message_handler(content_type=['text'])
 def text(message):
-    if sql.is_user_in_db(message.from_user.id):
-        pass
+    tg_id = message.from_user.id
+    if sql.is_user_in_db(tg_id):
+
+        user = sql.user_info(tg_id)['repeat_word_id']
+        eng = sql.word_info(user)
+        if message.text == eng[1]:
+            bot.send_message(chat_id=tg_id, text='Правильно, молодчина!')
+            markup = types.ReplyKeyboardMarkup()
+            knopka = telebot.types.InlineKeyboardButton(text='Повторять дальше📚', callback_data='repeat_words')
+            markup.add(knopka)
+            bot.send_message(tg_id, 'Можем идти дальше?', reply_markup=markup)
+            sql.inc_again_retry_word(tg_id, user)
+            sql.set_repeat_word_id(tg_id, 0)
+        else:
+            bot.send_message(chat_id=tg_id.from_user.id, text='Попробуй ввести снова')
+
         # TODO (@Amir)
         # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
         # - добавить ноту с again+1
