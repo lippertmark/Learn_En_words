@@ -120,6 +120,7 @@ def user_info(tg_id):
             d['repeat_word_id'] = i[6]
             return d
 
+
 def set_new_word_id(tg_id, word_id):
     """
     Записывает в базе данных в таблицу User по tg_id в поле new_word_id значение word_id
@@ -148,6 +149,7 @@ def set_repeat_word_id(tg_id, word_id):
     cursor.execute(req)
     conn.commit()
     conn.close()
+
 
 def add_new_word(word_en, word_ru, category, sentence, hate=0):
     """
@@ -251,7 +253,28 @@ def word_info(word_id):
         if i[0] == word_id:
             return i
 
-# cond = {
-#     'type': RETRY,
-#     'word_id': 12,
-# }
+
+def update_note(tg_id, word_id, type=None, again=None):
+    """
+    Изменить запись в базе данных Note
+    :param tg_id:
+    :param word_id:
+    :param changes: словарь изменений
+    :return:
+    """
+    conn = sqlite3.connect('sql/EnglishBotka.db')
+    cursor = conn.cursor()
+    if type != None and again != None:
+        req = f"UPDATE Note SET (type = '{type}', again = {again}) WHERE (tg_id = {tg_id} AND word_id = {word_id})"
+        print(req)
+        cursor.execute(req)
+        conn.commit()
+    elif type != None:
+        req = f"UPDATE Note SET (type = '{type}') WHERE (tg_id = {tg_id} AND word_id = {word_id})"
+        cursor.execute(req)
+        conn.commit()
+    elif again != None:
+        req = f"UPDATE Note SET (again = {again}) WHERE (tg_id = {tg_id} AND word_id = {word_id})"
+        cursor.execute(req)
+        conn.commit()
+    conn.close()
