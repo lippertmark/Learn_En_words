@@ -2,8 +2,7 @@ import telebot
 from telebot import types
 import sql.use_sql as sql
 import random
-
-LEARN = 5  # константа сколько раз повторить, чтобы выучить
+LEARN = 5
 bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
 ACCEPT_MESSAGES = ['Правильно, умница! 😎', 'Excellent job! 🥳', 'Молодец, так держать! 🤓']
 def is_learned(tg_id, word_id):
@@ -13,7 +12,6 @@ def is_learned(tg_id, word_id):
     :param word_id:
     :return: true(learned)/false(not learned)
     """
-    # TODO (@Олеся)
     notes = sql.notes_by_user_and_word(tg_id, word_id)
     if notes == []:
         return False
@@ -47,10 +45,9 @@ def send_new_word(tg_id):
     :return:
     """
     if sql.user_info(tg_id)['cnt_words_today'] == 10:
-        bot.send_message(chat_id=tg_id, text=f'Ты уже выучил 10 слов на сегодня. Возвращайся завтра!')
+        bot.send_message(chat_id=tg_id, text=f'Сегодня ты уже выучил 10 слов. Возвращайся завтра! 😉')
     else:
         word = generate_word(tg_id)
-        bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]}')
         sql.add_new_note(tg_id, word[0], sql.GENERATED, None)
         sql.set_new_word_id(tg_id, word[0])
         my_words = generate_choice(word[0])
@@ -63,7 +60,7 @@ def send_new_word(tg_id):
         random.shuffle(spisok)
         for i in spisok:
             markup.add(i)
-    bot.send_message(chat_id=tg_id, text='Выбери правильный вариант ответа:', reply_markup=markup)
+    bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]} 🎓\n\nВыбери правильный вариант ответа:', reply_markup=markup)
 
 
 def generate_choice(word_id):
@@ -141,7 +138,7 @@ def callback_inline(call):
                 markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words'))
                 score = sql.user_info(tg_id)['score']
                 bot.send_message(tg_id,
-                                 f'Ваш ник 😊: {username}\n\nТвои очки 😋: {score}\n\nВыученных слов 🤌: '
+                                 f'Твой ник 😊: {username}\n\nТвои очки 😋: {score}\n\nВыученных слов 🤌: '
                                  f'{sql.user_info(tg_id)["cnt_words_total"]}',
                                  reply_markup=markup2)
             elif call.data == 'learn_new':
@@ -159,33 +156,24 @@ def callback_inline(call):
                 sql.update_note(tg_id, sql.user_info(tg_id)['new_word_id'], type=sql.RETRY, again=0)
                 send_new_word(tg_id)
                 sql.inc_cnt_today(tg_id)
-        # тут ответы на кнопки
-
 
 
 @bot.message_handler(content_types=['text'])
 def lalala(message):
     tg_id = message.from_user.id
     if sql.is_user_in_db(tg_id):
-
-        user = sql.user_info(tg_id)['repeat_word_id']
-        eng = sql.word_info(user)
+        user = sql.user_info(tg_id)
+        repeat_word_id = user['repeat_word_id']
+        eng = sql.word_info(repeat_word_id)
         if message.text == eng[1]:
             bot.send_message(chat_id=tg_id, text=random.choice(ACCEPT_MESSAGES))
             sql.inc_again_retry_word(tg_id, repeat_word_id)
             sql.set_repeat_word_id(tg_id, 0)
             send_repeat_word(tg_id)
         else:
-            bot.send_message(chat_id=tg_id, text='Попробуй ввести снова')
-
-        # TODO (@Amir)
-        # 1. либо похвала с кнопкой Повторять дальше(callback_data='repeat_words')
-        # - добавить ноту с again+1
-        # - в базе данных User repeat_word_id set NULL
-        # 2. либо просим ввести заново
-        # тут ответы на текст
+            bot.send_message(chat_id=tg_id, text='Попробуй ввести снова 🥺')
     else:
-        bot.send_message(message.chat.id, 'Напиши "/start", чтобы начать пользоваться ботом!')
+        bot.send_message(message.chat.id, 'Напиши "/start", чтобы начать пользоваться ботом! ✨')
         # TODO (@Олеся) нужно сказать напиши /start
 
 
