@@ -266,15 +266,12 @@ def update_note(tg_id, word_id, type=None, again=None):
     cursor = conn.cursor()
     if type != None and again != None:
         req = f"UPDATE Note SET type = '{type}', again = {again} WHERE (tg_id = {tg_id} AND word_id = {word_id})"
-        print(req)
-        cursor.execute(req)
-        conn.commit()
     elif type != None:
         req = f"UPDATE Note SET type = '{type}' WHERE (tg_id = {tg_id} AND word_id = {word_id})"
-        cursor.execute(req)
-        conn.commit()
     elif again != None:
         req = f"UPDATE Note SET again = {again} WHERE (tg_id = {tg_id} AND word_id = {word_id})"
-        cursor.execute(req)
-        conn.commit()
+    cursor.execute(req)
+    conn.commit()
     conn.close()
+
+

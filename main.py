@@ -107,9 +107,13 @@ def send_repeat_word(tg_id):
     sql.set_repeat_word_id(tg_id, word[0])
 
 
+@bot.massage_handler(command=['add_words'])
+def add_words(message):
+    tg_id = message.chat.id
+    bot.send_message(tg_id, 'Пришли ')
+
 @bot.message_handler(commands=['start'])
 def welcome(message):
-    # TODO (@Олеся) добавить проверку на существование юзера также как в остальных
     user_id = message.from_user.id
     user_username = message.from_user.username
     sticker = open('img/welcome.webp', 'rb')
