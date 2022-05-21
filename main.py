@@ -64,8 +64,10 @@ def send_new_word(tg_id):
         item2 = types.InlineKeyboardButton(text=my_words[1][1], callback_data='wrong')
         item3 = types.InlineKeyboardButton(text=my_words[2][1], callback_data='wrong')
         item4 = types.InlineKeyboardButton(text=my_words[3][1], callback_data='wrong')
+        item5 = types.InlineKeyboardButton(text='Главное меню 🪴', callback_data='menu')
         spisok = [item4, item3, item2, item1]
         random.shuffle(spisok)
+        spisok.append(item5)
         for i in spisok:
             markup.add(i)
     bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]} 🎓\n\nВыбери правильный вариант ответа:',
@@ -141,6 +143,7 @@ def welcome(message):
     user_username = message.from_user.username
     sticker = open('img/welcome.webp', 'rb')
     bot.send_sticker(message.chat.id, sticker)
+
     markup = types.InlineKeyboardMarkup(row_width=1)
     item1 = types.InlineKeyboardButton(text='Профиль 🗂', callback_data='profile')
     item2 = types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new')
@@ -160,9 +163,10 @@ def callback_inline(call):
         username = call.message.chat.username
         if call.message:
             if call.data == 'profile':
-                markup2 = telebot.types.InlineKeyboardMarkup()
-                markup2.add(telebot.types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new'))
-                markup2.add(telebot.types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words'))
+                markup2 = types.InlineKeyboardMarkup()
+                markup2.add(types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new'))
+                markup2.add(types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words'))
+                markup2.add(types.InlineKeyboardButton(text='Главное меню 🪴', callback_data='menu'))
                 score = sql.user_info(tg_id)['score']
                 bot.send_message(tg_id,
                                  f'Твой ник 😊: {username}\n\nТвои очки 😋: {score}\n\nВыученных слов 🤌: '
@@ -178,11 +182,19 @@ def callback_inline(call):
                 send_new_word(tg_id)
             elif call.data == 'accept':
                 bot.send_message(tg_id,
-                                 'Правильный ответ! Умница! 🥰')
-                #sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
+                                 random.choice(ACCEPT_MESSAGES))
+                # sql.add_new_note(tg_id, sql.user_info(tg_id)['new_word_id'], sql.RETRY, 0)
                 sql.update_note(tg_id, sql.user_info(tg_id)['new_word_id'], type=sql.RETRY, again=0)
                 send_new_word(tg_id)
                 sql.inc_cnt_today(tg_id)
+            elif call.data == 'menu':
+                markup = types.InlineKeyboardMarkup(row_width=1)
+                item1 = types.InlineKeyboardButton(text='Профиль 🗂', callback_data='profile')
+                item2 = types.InlineKeyboardButton(text='Учить новые слова 🔎', callback_data='learn_new')
+                item3 = types.InlineKeyboardButton(text='Повторять слова 📚', callback_data='repeat_words')
+                markup.add(item1, item2, item3)
+                bot.send_message(tg_id, 'Главное меню🪴', reply_markup=markup)
+
 
 
 @bot.message_handler(content_types=['text'])
@@ -198,7 +210,7 @@ def lalala(message):
             sql.set_repeat_word_id(tg_id, 0)
             send_repeat_word(tg_id)
         else:
-            bot.send_message(chat_id=tg_id, text='Попробуй ввести снова 🥺')
+            bot.send_message(chat_id=tg_id, text=random.choice(TRY_AGAIN))
     else:
         bot.send_message(message.chat.id, 'Напиши "/start", чтобы начать пользоваться ботом! ✨')
         # TODO (@Олеся) нужно сказать напиши /start
