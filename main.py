@@ -2,10 +2,15 @@ import telebot
 from telebot import types
 import sql.use_sql as sql
 import random
+import config
+
 LEARN = 5
-bot = telebot.TeleBot('5162531568:AAFulbpqupsSMHiri53UD0jIRC7gpzUayTc')
-ACCEPT_MESSAGES = ['Правильно, умница! 😎', 'Excellent job! 🥳', 'Молодец, так держать! 🤓', 'Правильный ответ, крутяк! 🤩']
+bot = telebot.TeleBot(config.TOKEN)
+ACCEPT_MESSAGES = ['Правильно, умница! 😎', 'Excellent job! 🥳', 'Молодец, так держать! 🤓',
+                   'Правильный ответ, крутяк! 🤩']
 TRY_AGAIN = ['Попробуй ввести снова 🥺', 'Попробуй снова 😣', 'Ты ошибся, подумай лучше! 😖']
+
+
 def is_learned(tg_id, word_id):
     """
     Проверяет слово выучено пользователем или нет.
@@ -46,7 +51,9 @@ def send_new_word(tg_id):
     :return:
     """
     if sql.user_info(tg_id)['cnt_words_today'] == 10:
-        bot.send_message(chat_id=tg_id, text=f'Сегодня ты уже выучил 10 слов. Возвращайся завтра! 😉')
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(text='Главное меню 🪴', callback_data='menu'))
+        bot.send_message(chat_id=tg_id, text=f'Сегодня ты уже выучил 10 слов. Возвращайся завтра! 😉', reply_markup=markup)
     else:
         word = generate_word(tg_id)
         sql.add_new_note(tg_id, word[0], sql.GENERATED, None)
@@ -61,7 +68,8 @@ def send_new_word(tg_id):
         random.shuffle(spisok)
         for i in spisok:
             markup.add(i)
-    bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]} 🎓\n\nВыбери правильный вариант ответа:', reply_markup=markup)
+    bot.send_message(chat_id=tg_id, text=f'Твое слово: {word[1]} 🎓\n\nВыбери правильный вариант ответа:',
+                     reply_markup=markup)
 
 
 def generate_choice(word_id):
@@ -104,14 +112,28 @@ def send_repeat_word(tg_id):
     """
     word_id = generate_repeat_word(tg_id)
     word = sql.word_info(word_id)
-    bot.send_message(chat_id=tg_id, text=f'Введи английский перевод этого слова: {word[2]}')
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Главное меню 🪴', callback_data='menu'))
+    bot.send_message(chat_id=tg_id, text=f'Введи английский перевод этого слова: {word[2]}', reply_markup=markup)
     sql.set_repeat_word_id(tg_id, word[0])
 
+@bot.message_handler(commands=['learn_new'])
+def learn_new(message):
+    tg_id = message.from_user.id
+    send_new_word(tg_id)
 
-@bot.massage_handler(command=['add_words'])
+@bot.message_handler(commands=['repeat_word'])
+def repeat_word(message):
+    tg_id = message.from_user.id
+    send_repeat_word(tg_id)
+
+@bot.message_handler(commands=['add_words'])
 def add_words(message):
-    tg_id = message.chat.id
-    bot.send_message(tg_id, 'Пришли ')
+    tg_id = message.from_user.id
+    bot.send_message(tg_id, 'Пришли файл cо словами, для удобства используй вот такой шаблон:')
+    bot.send_document(tg_id, open('files/shablon.xlsx', 'rb'))
+
+
 
 @bot.message_handler(commands=['start'])
 def welcome(message):
